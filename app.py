@@ -5,14 +5,13 @@ import base64
 # Configuración de la página (DEBE ir siempre primero)
 st.set_page_config(page_title="Playlist - Cumple Hilda", page_icon="🎵", layout="centered")
 
-# --- FUNCIÓN PARA EL FONDO ---
+# --- FUNCIÓN PARA EL FONDO Y ESTILOS ---
 def agregar_fondo(imagen_path):
-    # Verificamos si la imagen existe antes de intentar cargarla
     if os.path.exists(imagen_path):
         with open(imagen_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode()
         
-        # Inyectamos CSS personalizado
+        # Inyectamos CSS personalizado corregido
         st.markdown(
             f"""
             <style>
@@ -23,18 +22,42 @@ def agregar_fondo(imagen_path):
                 background-attachment: fixed;
             }}
             
-            /* Le damos un fondo semitransparente oscuro al contenedor principal para que el texto sea legible */
+            /* Fondo semitransparente para el contenedor principal */
             .block-container {{
-                background-color: rgba(0, 0, 0, 0.75);
+                background-color: rgba(0, 0, 0, 0.80);
                 padding: 2rem 3rem;
                 border-radius: 15px;
                 margin-top: 2rem;
                 margin-bottom: 2rem;
             }}
             
-            /* Aseguramos que los textos destaquen en color claro */
+            /* Textos generales en blanco */
             h1, h2, h3, p {{
                 color: #FFFFFF !important;
+            }}
+            
+            /* --- CORRECCIÓN DE LOS BOTONES --- */
+            /* Fondo oscuro y borde dorado para los botones */
+            div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {{
+                background-color: #222222 !important; 
+                border: 1px solid #FFD700 !important; 
+            }}
+            
+            /* Forzar el color del texto dentro del botón a blanco */
+            div[data-testid="stButton"] > button p, div[data-testid="stDownloadButton"] > button p,
+            div[data-testid="stButton"] > button div, div[data-testid="stDownloadButton"] > button div {{
+                color: #FFFFFF !important;
+            }}
+
+            /* Efecto al pasar el mouse (Hover): Fondo dorado y texto negro */
+            div[data-testid="stButton"] > button:hover, div[data-testid="stDownloadButton"] > button:hover {{
+                background-color: #FFD700 !important;
+                border: 1px solid #FFD700 !important;
+            }}
+            
+            div[data-testid="stButton"] > button:hover p, div[data-testid="stDownloadButton"] > button:hover p,
+            div[data-testid="stButton"] > button:hover div, div[data-testid="stDownloadButton"] > button:hover div {{
+                color: #000000 !important; 
             }}
             </style>
             """,
