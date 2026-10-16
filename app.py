@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import base64
 
-# Configuración de la página (DEBE ir siempre primero)
+# Configuración de la página
 st.set_page_config(page_title="Playlist - Cumple Hilda", page_icon="🎵", layout="centered")
 
 # --- FUNCIÓN PARA EL FONDO Y ESTILOS ---
@@ -11,7 +11,6 @@ def agregar_fondo(imagen_path):
         with open(imagen_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode()
         
-        # Inyectamos CSS personalizado corregido
         st.markdown(
             f"""
             <style>
@@ -22,7 +21,6 @@ def agregar_fondo(imagen_path):
                 background-attachment: fixed;
             }}
             
-            /* Fondo semitransparente para el contenedor principal */
             .block-container {{
                 background-color: rgba(0, 0, 0, 0.80);
                 padding: 2rem 3rem;
@@ -31,25 +29,21 @@ def agregar_fondo(imagen_path):
                 margin-bottom: 2rem;
             }}
             
-            /* Textos generales en blanco */
             h1, h2, h3, p {{
                 color: #FFFFFF !important;
             }}
             
-            /* --- CORRECCIÓN DE LOS BOTONES --- */
             /* Fondo oscuro y borde dorado para los botones */
             div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {{
                 background-color: #222222 !important; 
                 border: 1px solid #FFD700 !important; 
             }}
             
-            /* Forzar el color del texto dentro del botón a blanco */
             div[data-testid="stButton"] > button p, div[data-testid="stDownloadButton"] > button p,
             div[data-testid="stButton"] > button div, div[data-testid="stDownloadButton"] > button div {{
                 color: #FFFFFF !important;
             }}
 
-            /* Efecto al pasar el mouse (Hover): Fondo dorado y texto negro */
             div[data-testid="stButton"] > button:hover, div[data-testid="stDownloadButton"] > button:hover {{
                 background-color: #FFD700 !important;
                 border: 1px solid #FFD700 !important;
@@ -64,7 +58,6 @@ def agregar_fondo(imagen_path):
             unsafe_allow_html=True
         )
 
-# Llamamos a la función con el nombre de tu imagen
 agregar_fondo("fondo.jpg")
 
 # --- INTERFAZ PRINCIPAL ---
@@ -83,9 +76,19 @@ else:
     if not archivos_mp3:
         st.info("No se encontraron archivos MP3 en la carpeta.")
     else:
-        # 1. Inicializamos el estado para saber qué pista está sonando
         if "pista_actual" not in st.session_state:
             st.session_state.pista_actual = archivos_mp3[0]
+
+        # --- FUNCIONES DE CONTROL ---
+        def cambiar_tema_lista(nuevo_tema):
+            st.session_state.pista_actual = nuevo_tema
+
+        def cambiar_tema_idx(incremento):
+            # Buscamos en qué posición está el tema actual
+            idx_actual = archivos_mp3.index(st.session_state.pista_actual)
+            # Calculamos el nuevo índice (el módulo % hace que si llega al final, vuelva al principio)
+            nuevo_idx = (idx_actual + incremento) % len(archivos_mp3)
+            st.session_state.pista_actual = archivos_mp3[nuevo_idx]
 
         # --- REPRODUCTOR PRINCIPAL ---
         st.subheader("🎧 Reproduciendo ahora:")
@@ -96,13 +99,17 @@ else:
         ruta_actual = os.path.join(CARPETA_AUDIOS, st.session_state.pista_actual)
         st.audio(ruta_actual, format="audio/mp3", autoplay=True)
         
+        # --- BOTONES ANTERIOR / SIGUIENTE ---
+        col_prev, col_next = st.columns(2)
+        with col_prev:
+            st.button("⏮️ Tema Anterior", on_click=cambiar_tema_idx, args=(-1,), use_container_width=True)
+        with col_next:
+            st.button("⏭️ Tema Siguiente", on_click=cambiar_tema_idx, args=(1,), use_container_width=True)
+        
         st.divider()
 
         # --- PLAYLIST Y DESCARGAS ---
         st.subheader("💽 Lista de Temas")
-        
-        def cambiar_tema(nuevo_tema):
-            st.session_state.pista_actual = nuevo_tema
 
         for archivo in archivos_mp3:
             titulo = archivo.replace(".mp3", "").replace("_", " ").title()
@@ -116,7 +123,7 @@ else:
                     st.button(
                         f"▶️ {titulo}", 
                         key=f"play_{archivo}", 
-                        on_click=cambiar_tema, 
+                        on_click=cambiar_tema_lista, 
                         args=(archivo,), 
                         use_container_width=True
                     )
